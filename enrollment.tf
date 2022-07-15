@@ -1,6 +1,7 @@
 module "enrollment-backend" {
   source  = "app.terraform.io/abcballpark/enrollment-backend/aws"
-  version = "0.1.8"
+  version = "0.1.10"
 
   api_name = "enrollment-api"
+  user_pool_arn = module.auth_backend.pool_arn
 }
