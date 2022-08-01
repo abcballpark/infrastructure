@@ -1,4 +1,4 @@
-const post = require("./post");
+const { post, get } = require("./verbs");
 
 const respond = (success, result, error, callback) => {
   callback(null, {
@@ -13,39 +13,36 @@ const respond = (success, result, error, callback) => {
 
 module.exports.handler = async (event, context, callback) => {
   let result;
-
+  let fn;
   switch (event.httpMethod) {
     case "POST":
-      try {
-        console.log("POST");
-        result = await post(event, context);
-        respond(true, result, null, callback);
-      } catch (err) {
-        console.error(err);
-        respond(false, null, err, callback);
-      }
+      fn = post;
+      break;
+    // try {
+    //   console.log(event.httpMethod);
+    //   result = await post(event, context);
+    //   respond(true, result, null, callback);
+    // } catch (err) {
+    //   console.error(err);
+    //   respond(false, null, err, callback);
+    // }
+    case "GET":
+      fn = get;
+      break;
+    // try {
+    //   console.log(event.httpMethod);
+    //   result = get(event, context);
+    // } catch (err) {}
     default:
       break;
   }
 
-  // promise
-  //   .then((res) => {
-  //     callback(null, {
-  //       body: JSON.stringify({
-  //         success: true,
-  //         result: res,
-  //         error: null,
-  //       }),
-  //     });
-  //   })
-  //   .catch((err) => {
-  //     callback(null, {
-  //       statusCode: 503,
-  //       body: JSON.stringify({
-  //         success: false,
-  //         result: null,
-  //         error: err.message,
-  //       }),
-  //     });
-  //   });
+  try {
+    console.log(event.httpMethod);
+    result = await fn(event, context);
+    respond(true, result, null, callback);
+  } catch (err) {
+    console.error(err);
+    respond(false, null, err, callback);
+  }
 };

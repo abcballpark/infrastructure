@@ -1,6 +1,6 @@
 const TABLE_NAME = process.env.TABLE_NAME;
 const HASH_KEY = process.env.HASH_KEY;
-const { putItem } = require("./dynamodb");
+const { putItem } = require("../dynamodb");
 const { v4: uuid } = require("uuid");
 
 module.exports = async (event, context) => {
