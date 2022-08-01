@@ -11,7 +11,9 @@ resource "aws_lambda_function" "endpoint_fn" {
 
   environment {
     variables = {
-      TABLE_NAME = aws_dynamodb_table.main.name
+      TABLE_NAME = aws_dynamodb_table.main.name,
+      HASH_KEY   = aws_dynamodb_table.main.hash_key
+      SORT_KEY   = aws_dynamodb_table.main.range_key
     }
   }
 }

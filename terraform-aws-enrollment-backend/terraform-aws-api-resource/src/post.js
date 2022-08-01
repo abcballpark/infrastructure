@@ -1,7 +1,18 @@
 const TABLE_NAME = process.env.TABLE_NAME;
-const { create } = require("./dynamodb");
+const HASH_KEY = process.env.HASH_KEY;
+const { putItem } = require("./dynamodb");
+const { v4: uuid } = require("uuid");
 
-module.exports = (event, context) => {
+module.exports = async (event, context) => {
   const item = JSON.parse(event.body);
-  return create(TABLE_NAME, item);
+  const hashkey = uuid();
+  item[HASH_KEY] = hashkey;
+  console.log(`item: ${JSON.stringify(item)}`);
+  try {
+    const result = await putItem(item);
+    return result;
+  } catch (err) {
+    console.error(`post error: ${JSON.stringify(err)}`);
+    context.fail(err.message);
+  }
 };
