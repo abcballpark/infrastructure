@@ -18,6 +18,21 @@ variable "authorizer_id" {
   type = string
 }
 
-variable "dynamo_table_arn" {
+# variable "dynamo_table_arn" {
+#   type = string
+# }
+
+variable "table_attributes" {
+    type = list(object({
+        name = string,
+        type = string
+    }))
+}
+
+variable "hash_key" {
+  type = string
+}
+
+variable "range_key" {
   type = string
 }

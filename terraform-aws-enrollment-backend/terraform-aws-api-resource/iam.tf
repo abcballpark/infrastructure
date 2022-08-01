@@ -31,8 +31,7 @@ data "aws_iam_policy_document" "dynamodb_rw" {
       "dynamodb:DeleteItem",
       "dynamodb:BatchGetItem",
     ]
-    resources = [var.dynamo_table_arn]
-    # resources = [module.tables.dynamo_table_arn]
+    resources = [aws_dynamodb_table.main.arn]
   }
 }
 
@@ -42,7 +41,6 @@ resource "aws_iam_policy" "dynamodb_rw" {
 }
 
 resource "aws_iam_role_policy_attachment" "participant_dynamo_rw" {
-  role = aws_iam_role.exec_role.name
-  #   role = module.resource_participant.exec_role_name
+  role       = aws_iam_role.exec_role.name
   policy_arn = aws_iam_policy.dynamodb_rw.arn
 }

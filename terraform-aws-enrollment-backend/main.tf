@@ -7,6 +7,7 @@ resource "aws_api_gateway_deployment" "dev" {
 
   triggers = {
     redeployment = sha1(jsonencode([
+      # Adding things here will influence when the API is re-deployed
       # API Gateway Resource definitions
       module.resource_participant.sha1_output
     ]))
@@ -31,44 +32,6 @@ resource "aws_cloudwatch_log_group" "api_gw_execution_log" {
   name = "API-Gateway-Execution-Logs_${aws_api_gateway_rest_api.api.id}/${aws_api_gateway_stage.dev.stage_name}"
 }
 
-data "aws_iam_policy_document" "enrollment_api_logger_role_policy_doc" {
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["apigateway.amazonaws.com"]
-    }
-    actions = [
-      "sts:AssumeRole"
-    ]
-  }
-}
-
-data "aws_iam_policy_document" "enrollment_api_logger_role_policy_cloudwatch" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:DescribeLogGroups",
-      "logs:DescribeLogStreams",
-      "logs:PutLogEvents",
-      "logs:GetLogEvents",
-      "logs:FilterLogEvents"
-    ]
-    resources = ["*"]
-  }
-}
-resource "aws_iam_role" "enrollment_api_logger" {
-  name               = "enrollment-api-logger"
-  assume_role_policy = data.aws_iam_policy_document.enrollment_api_logger_role_policy_doc.json
-}
-
-resource "aws_iam_role_policy" "enrollment_api_logger_policy_1" {
-  role   = aws_iam_role.enrollment_api_logger.id
-  policy = data.aws_iam_policy_document.enrollment_api_logger_role_policy_cloudwatch.json
-}
-
 resource "aws_api_gateway_account" "enrollment_api" {
   cloudwatch_role_arn = aws_iam_role.enrollment_api_logger.arn
 }
@@ -85,20 +48,27 @@ resource "aws_api_gateway_authorizer" "main" {
 ///////////////////////////////////////////////////////////////////////////////
 // API Gateway Resources
 
-# Defines DynamoDB tables
-module "tables" {
-  source = "./data"
-}
-
 module "resource_participant" {
   source = "./terraform-aws-api-resource"
   name   = "participant"
 
-  api_name = aws_api_gateway_rest_api.api.name
-  api_id   = aws_api_gateway_rest_api.api.id
+  api_name           = aws_api_gateway_rest_api.api.name
+  api_id             = aws_api_gateway_rest_api.api.id
   parent_resource_id = aws_api_gateway_rest_api.api.root_resource_id
 
-  authorizer_id      = aws_api_gateway_authorizer.main.id
+  authorizer_id = aws_api_gateway_authorizer.main.id
 
-  dynamo_table_arn = module.tables.participant_table_arn
+  # dynamo_table_arn = module.tables.participant_table_arn
+  table_attributes = [
+    {
+      name = "ParticipantId",
+      type = "S"
+    },
+    {
+      name = "UserId",
+      type = "S"
+    },
+  ]
+  hash_key  = "ParticipantId"
+  range_key = "UserId"
 }
