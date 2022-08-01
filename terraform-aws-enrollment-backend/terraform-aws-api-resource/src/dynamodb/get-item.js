@@ -7,15 +7,18 @@ const { unmarshall } = require("@aws-sdk/util-dynamodb");
 
 const getByKey = async (hashkey, sortkey) => {
   const client = new DynamoDBClient({ region: "us-east-1" });
-  const getItemCommand = new GetItemCommand({
+  const commandParams = {
     Key: {
       [HASH_KEY]: { S: hashkey },
       [SORT_KEY]: { S: sortkey },
     },
     TableName: TABLE_NAME,
-  });
+  };
+  console.log(`commandParams: ${commandParams}`);
+  const getItemCommand = new GetItemCommand(commandParams);
+  // console.log(`command: ${JSON.stringify(getItemCommand)}`);
   const getResult = await client.send(getItemCommand);
-  return unmarshall(getResult.Item);
+  return getResult.Item ? unmarshall(getResult.Item) : {};
 };
 
 module.exports = {
